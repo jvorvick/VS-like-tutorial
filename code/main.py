@@ -26,13 +26,13 @@ class Game:
     def setup(self):
         map = load_pygame(join('data', 'maps', 'world.tmx'))
             
+        for col in map.get_layer_by_name('Collisions'):
+            CollisionSprite((col.x, col.y), None, (col.width, col.height), (self.all_sprites, self.collision_sprites))
         for x, y, image in map.get_layer_by_name('Ground').tiles():
             Sprite((x * TILE_SIZE,y * TILE_SIZE), image, self.all_sprites)
         for obj in map.get_layer_by_name('Objects'):
-            CollisionSprite((obj.x, obj.y), obj.image, (self.all_sprites, self.collision_sprites))
-        for col in map.get_layer_by_name('Collisions'):
-            # CollisionSprite((col.x, col.y), col.image, (self.all_sprites, self.collision_sprites))
-            print(col.x, col.y, col.image)
+            CollisionSprite((obj.x, obj.y), obj.image, None, (self.all_sprites, self.collision_sprites))
+            # print(col.x, col.y, col.width, col.height, col.image)
 
     def run(self):
         while self.running:

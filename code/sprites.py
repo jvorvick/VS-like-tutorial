@@ -7,7 +7,7 @@ class Sprite(pygame.sprite.Sprite):
         self.rect = self.image.get_frect(topleft = pos)
 
 class CollisionSprite(pygame.sprite.Sprite):
-    def __init__(self, pos, surf, groups):
+    def __init__(self, pos, surf, size, groups):
         super().__init__(groups)
-        self.image = surf
+        self.image = surf if surf else pygame.Surface(size)
         self.rect = self.image.get_frect(topleft = pos)
