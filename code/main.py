@@ -30,6 +30,9 @@ class Game:
             Sprite((x * TILE_SIZE,y * TILE_SIZE), image, self.all_sprites)
         for obj in map.get_layer_by_name('Objects'):
             CollisionSprite((obj.x, obj.y), obj.image, (self.all_sprites, self.collision_sprites))
+        for col in map.get_layer_by_name('Collisions'):
+            # CollisionSprite((col.x, col.y), col.image, (self.all_sprites, self.collision_sprites))
+            print(col.x, col.y, col.image)
 
     def run(self):
         while self.running:
