@@ -2,7 +2,7 @@ from settings import *
 from player import Player
 from sprites import *
 from pytmx.util_pygame import load_pygame
-from groups import AllSprites, GroundTiles
+from groups import AllSprites
 
 from random import randint
 
@@ -18,7 +18,6 @@ class Game:
         # groups
         self.all_sprites = AllSprites()
         self.collision_sprites = pygame.sprite.Group()
-        self.ground_tiles = GroundTiles()
         self.setup()
         # sprites
         
@@ -27,17 +26,15 @@ class Game:
         map = load_pygame(join('data', 'maps', 'world.tmx'))
 
         for x, y, image in map.get_layer_by_name('Ground').tiles():
-            Sprite((x * TILE_SIZE,y * TILE_SIZE), image, self.ground_tiles)
+            Sprite((x * TILE_SIZE,y * TILE_SIZE), image, self.all_sprites)
 
         for obj in map.get_layer_by_name('Collisions'):
             CollisionSprite((obj.x, obj.y), pygame.Surface((obj.width, obj.height)), self.collision_sprites)
 
         for obj in map.get_layer_by_name('Objects'):
-            # print(obj.y)
             CollisionSprite((obj.x, obj.y), obj.image, (self.all_sprites, self.collision_sprites))
 
         for obj in map.get_layer_by_name('Entities'):
-            # print(obj.y)
             if obj.name == 'Player':
                 self.player = Player((obj.x,obj.y), self.all_sprites, self.collision_sprites)
 
@@ -52,14 +49,11 @@ class Game:
                     self.running = False
 
             # update
-            self.all_sprites.ysort()
-            self.ground_tiles.update()
             self.all_sprites.update(dt)
 
             # draw
             self.display_surface.fill('black')
 
-            self.ground_tiles.draw(self.player.rect.center)
             self.all_sprites.draw(self.player.rect.center)
             pygame.display.update()
 
