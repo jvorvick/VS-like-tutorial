@@ -4,7 +4,7 @@ class Player(pygame.sprite.Sprite):
     def __init__(self, pos, groups, collision_sprites):
         super().__init__(groups)
         self.load_images()
-        self.state, self.frame_index = 'right', 0
+        self.state, self.frame_index = 'down', 0
         self.image = pygame.image.load(join('images', 'player', 'down', '0.png')).convert_alpha()
         self.rect = self.image.get_frect(center = pos)
         self.hitbox_rect = self.rect.inflate(-60, -90)
@@ -56,8 +56,12 @@ class Player(pygame.sprite.Sprite):
             self.state = 'down' if self.direction.y > 0 else 'up'
 
         #animate
-        self.frame_index += 5 * dt
-        self.image = self.frames[self.state][int(self.frame_index) % len(self.frames[self.state])]
+        if self.direction.length():
+            self.frame_index += 5 * dt
+            self.image = self.frames[self.state][int(self.frame_index) % len(self.frames[self.state])]
+        else:
+            self.image = self.frames[self.state][0]
+            self.frame_index = 1
 
     def update(self, dt):
         self.input()
