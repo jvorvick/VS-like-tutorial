@@ -20,8 +20,7 @@ class Game:
         self.collision_sprites = pygame.sprite.Group()
         self.setup()
         # sprites
-        
-        
+
     def setup(self):
         map = load_pygame(join('data', 'maps', 'world.tmx'))
 
@@ -37,6 +36,7 @@ class Game:
         for obj in map.get_layer_by_name('Entities'):
             if obj.name == 'Player':
                 self.player = Player((obj.x,obj.y), self.all_sprites, self.collision_sprites)
+                self.gun = Gun(self.player, self.all_sprites, self.all_sprites)
 
     def run(self):
         while self.running:
