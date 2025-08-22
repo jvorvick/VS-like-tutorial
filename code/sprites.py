@@ -27,9 +27,6 @@ class Gun(pygame.sprite.Sprite):
         self.image = self.gun_surf
         self.rect = self.image.get_frect(center = self.player.rect.center + self.player_direction * self.distance)
 
-        # bullet setup
-        self.all_sprites = all_sprites
-
     def get_direction(self):
         mouse_pos = pygame.Vector2(pygame.mouse.get_pos())
         player_pos = pygame.Vector2(WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2)
@@ -43,26 +40,24 @@ class Gun(pygame.sprite.Sprite):
             self.image = pygame.transform.rotozoom(self.gun_surf, abs(angle), 1)
             self.image = pygame.transform.flip(self.image, False, True)
 
-    def fire_gun(self):
-        Bullet(self.player_direction, self.rect.center, self.rect.width, self.all_sprites)
-
     def update(self, _):
         self.get_direction()
-        angle = self.rotate_gun()
+        self.rotate_gun()
         self.rect.center = self.player.rect.center + self.player_direction * self.distance
-        if pygame.mouse.get_just_pressed()[0]:
-            self.fire_gun()
 
 class Bullet(pygame.sprite.Sprite):
-    def __init__(self, direction, pos, gun_width, groups):
+    def __init__(self, surf, pos, direction, groups):
         super().__init__(groups)
-        self.bullet_surf = pygame.image.load(join('images', 'gun', 'bullet.png')).convert_alpha()
-        self.image = self.bullet_surf
+        self.image = surf
+        self.rect = self.image.get_frect(center = pos)
+        self.spawn_time = pygame.time.get_ticks()
+        self.lifetime = 1000
+
         self.direction = direction
-        self.speed = 400
-        self.angle = degrees(atan2(self.direction.x, self.direction.y)) - 90
-        self.rect = self.image.get_frect(center = pos + self.direction * (gun_width / 2))
+        self.speed = 1200
 
     def update(self, dt):
-        self.image = pygame.transform.rotozoom(self.bullet_surf, self.angle, 1)
         self.rect.center += self.direction * self.speed * dt
+
+        if pygame.time.get_ticks() - self.spawn_time >= self.lifetime:
+            self.kill()
