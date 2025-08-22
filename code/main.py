@@ -20,6 +20,7 @@ class Game:
         self.all_sprites = AllSprites()
         self.collision_sprites = pygame.sprite.Group()
         self.bullet_sprites = pygame.sprite.Group()
+        self.enemy_sprites = pygame.sprite.Group()
         
         self.setup()
         
@@ -28,8 +29,14 @@ class Game:
         self.shoot_time = 0
         self.gun_cooldown = 100
 
+        # enemy timer
+        self.can_spawn = True
+        self.spawn_time = 0
+        self.enemy_cooldown = 500
+
     def load_images(self):
         self.bullet_surf = pygame.image.load(join('images', 'gun', 'bullet.png')). convert_alpha()
+        self.enemy_surf = pygame.image.load(join('images', 'enemies', 'skeleton', '0.png'))
 
     def input(self):
         if pygame.mouse.get_pressed()[0] and self.can_shoot:
@@ -37,12 +44,27 @@ class Game:
             Bullet(self.bullet_surf, pos, self.gun.player_direction, (self.all_sprites, self.bullet_sprites))
             self.can_shoot = False
             self.shoot_time = pygame.time.get_ticks()
+    
+    def enemy_spawn(self):
+        pass
 
     def gun_timer(self):
         if not self.can_shoot:
             current_time = pygame.time.get_ticks()
-            if current_time -  self.shoot_time >= self.gun_cooldown:
+            if current_time - self.shoot_time >= self.gun_cooldown:
                 self.can_shoot = True
+
+    def enemy_timer(self):
+        if not self.can_spawn:
+            current_time = pygame.time.get_ticks()
+            if current_time - self.spawn_time >= self.enemy_cooldown:
+                self.can_spawn = True
+        else:
+            pos = self.player.rect.center
+            Enemy(self.enemy_surf, pos, self.enemy_sprites)
+            self.can_spawn = False
+            self.spawn_time = pygame.time.get_ticks()
+        print(self.enemy_sprites)
 
 
     def setup(self):
@@ -74,8 +96,10 @@ class Game:
 
             # update
             self.gun_timer()
+            
             self.input()
             self.all_sprites.update(dt)
+            self.enemy_timer()
 
             # draw
             self.display_surface.fill('black')
