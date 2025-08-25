@@ -71,6 +71,8 @@ class Enemy(pygame.sprite.Sprite):
 
         # sprite setup
         super().__init__(groups)
+        self.load_images()
+        self.frame_index = 0
         self.image = surf
         self.rect = self.image.get_frect(center = pos)
         self.hitbox_rect = self.rect.inflate(-60, -90)
@@ -79,6 +81,15 @@ class Enemy(pygame.sprite.Sprite):
         self.direction = pygame.Vector2()
         self.speed = 200
         self.collision_sprites = collision_sprites
+
+    def load_images(self):
+        self.frames = []
+        for folder_path, sub_folders, file_names in walk(join('images', 'enemies', 'skeleton')):
+            for file_name in sorted(file_names, key=lambda name: int(name.split('.')[0])):
+                full_path = join(folder_path, file_name)
+                surf = pygame.image.load(full_path).convert_alpha()
+                self.frames.append(surf)
+        print(self.frames)
 
     def get_direction(self):
         enemy_pos = pygame.Vector2(self.rect.center)
@@ -96,24 +107,19 @@ class Enemy(pygame.sprite.Sprite):
         for sprite in self.collision_sprites:
             if sprite.rect.colliderect(self.hitbox_rect):
                 if direction == 'horizontal':
-                    if self.direction.x > 0: self.hitbox_rect.right = sprite.rect.left
-                    if self.direction.x < 0: self.hitbox_rect.left = sprite.rect.right
+                    if self.direction.x < 0: self.hitbox_rect.right = sprite.rect.left
+                    if self.direction.x > 0: self.hitbox_rect.left = sprite.rect.right
                 else:
                     if self.direction.y < 0: self.hitbox_rect.bottom = sprite.rect.top
                     if self.direction.y > 0: self.hitbox_rect.top = sprite.rect.bottom
 
-    # def animate(self, dt):
-    #     # get state
-    #     if self.direction.x != 0:
-    #         self.state = 'right' if self.direction.x > 0 else 'left'
-    #     if self.direction.y != 0:
-    #         self.state = 'down' if self.direction.y > 0 else 'up'
-
-    #     #animate
-    #     self.frame_index = self.frame_index + 5 * dt if self.direction else 0
-    #     self.image = self.frames[self.state][int(self.frame_index) % len(self.frames[self.state])]
- 
+    def animate(self, dt):
+        # animate
+        self.frame_index = self.frame_index + 5 * dt
+        # print(self.frame_index)
+        self.image = self.frames[int(self.frame_index) % len(self.frames)]
 
     def update(self, dt):
         self.get_direction()
         self.move(dt)
+        self.animate(dt)
