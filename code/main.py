@@ -21,9 +21,7 @@ class Game:
         self.collision_sprites = pygame.sprite.Group()
         self.bullet_sprites = pygame.sprite.Group()
         self.enemy_sprites = pygame.sprite.Group()
-        
-        self.setup()
-        
+
         # gun timer
         self.can_shoot = True
         self.shoot_time = 0
@@ -34,9 +32,11 @@ class Game:
         self.spawn_time = 0
         self.enemy_cooldown = 500
 
+        self.setup()
+
     def load_images(self):
         self.bullet_surf = pygame.image.load(join('images', 'gun', 'bullet.png')). convert_alpha()
-        self.enemy_surf = pygame.image.load(join('images', 'enemies', 'skeleton', '0.png'))
+        self.enemy_surf = pygame.image.load(join('images', 'enemies', 'skeleton', '0.png')).convert_alpha()
 
     def input(self):
         if pygame.mouse.get_pressed()[0] and self.can_shoot:
@@ -54,18 +54,15 @@ class Game:
             if current_time - self.shoot_time >= self.gun_cooldown:
                 self.can_shoot = True
 
-    def enemy_timer(self):
+    def enemy_timer(self, enemy_pos, player):
         if not self.can_spawn:
             current_time = pygame.time.get_ticks()
             if current_time - self.spawn_time >= self.enemy_cooldown:
                 self.can_spawn = True
         else:
-            pos = self.player.rect.center
-            Enemy(self.enemy_surf, pos, self.enemy_sprites)
+            Enemy(player, self.enemy_surf, enemy_pos, (self.all_sprites, self.enemy_sprites), self.collision_sprites)
             self.can_spawn = False
             self.spawn_time = pygame.time.get_ticks()
-        print(self.enemy_sprites)
-
 
     def setup(self):
         map = load_pygame(join('data', 'maps', 'world.tmx'))
@@ -81,8 +78,12 @@ class Game:
 
         for obj in map.get_layer_by_name('Entities'):
             if obj.name == 'Player':
-                self.player = Player((obj.x,obj.y), self.all_sprites, self.collision_sprites)
+                self.player = Player((obj.x, obj.y), self.all_sprites, self.collision_sprites)
                 self.gun = Gun(self.player, self.all_sprites, self.all_sprites)
+            if obj.name == 'Enemy':
+                self.enemy_timer((obj.x,obj.y), self.player)
+                # Enemy(self.enemy_surf, (obj.x, obj.y), (self.all_sprites, self.enemy_sprites))
+                
 
     def run(self):
         while self.running:
@@ -99,7 +100,6 @@ class Game:
             
             self.input()
             self.all_sprites.update(dt)
-            self.enemy_timer()
 
             # draw
             self.display_surface.fill('black')
