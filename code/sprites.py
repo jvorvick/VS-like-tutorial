@@ -63,61 +63,49 @@ class Bullet(pygame.sprite.Sprite):
             self.kill()
 
 class Enemy(pygame.sprite.Sprite):
-    def __init__(self, player, surf, pos, groups, collision_sprites):
-        # player connection
-        self.player = player
-        self.player_pos = pygame.Vector2(WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2)
-        self.player_direction = pygame.Vector2(0,1)
-
-        # sprite setup
+    def __init__(self, pos, frames, groups, player, collision_sprites):
         super().__init__(groups)
-        self.load_images()
-        self.frame_index = 0
-        self.image = surf
+        self.player = player
+
+        # image
+        self.frames, self.frame_index = frames, 0
+        self.image = self.frames[self.frame_index]
+        self.animation_speed = 6
+
+        # rect
         self.rect = self.image.get_frect(center = pos)
-        self.hitbox_rect = self.rect.inflate(-60, -90)
-
-        # movement
-        self.direction = pygame.Vector2()
-        self.speed = 200
+        self.hitbox_rect = self.rect.inflate(-20,-40)
         self.collision_sprites = collision_sprites
+        self.direction = pygame.Vector2()
+        self.speed = 350
 
-    def load_images(self):
-        self.frames = []
-        for folder_path, sub_folders, file_names in walk(join('images', 'enemies', 'skeleton')):
-            for file_name in sorted(file_names, key=lambda name: int(name.split('.')[0])):
-                full_path = join(folder_path, file_name)
-                surf = pygame.image.load(full_path).convert_alpha()
-                self.frames.append(surf)
-
-    def get_direction(self):
-        enemy_pos = pygame.Vector2(self.rect.center)
-        player_pos = pygame.Vector2(self.player.rect.center)
-        self.direction = (enemy_pos - player_pos).normalize()
+    def animate(self, dt):
+        self.frame_index += self.animation_speed * dt
+        self.image = self.frames[int(self.frame_index) % len(self.frames)]
 
     def move(self, dt):
-        self.hitbox_rect.x -= self.direction.x * self.speed * dt
-        self.collision('horizontal')
-        self.hitbox_rect.y -= self.direction.y * self.speed * dt
-        self.collision('vertical')
+        # get direction
+        player_pos = pygame.Vector2(self.player.rect.center)
+        enemy_pos = pygame.Vector2(self.rect.center)
+        self.direction = (player_pos - enemy_pos).normalize()
+
+        # update the rect position + collision
+        self.hitbox_rect.x += self.direction.x * self.speed * dt
+        self.collisions('horizontal')
+        self.hitbox_rect.y += self.direction.y * self.speed * dt
+        self.collisions('vertical')
         self.rect.center = self.hitbox_rect.center
 
-    def collision(self, direction):
+    def collisions(self, direction):
         for sprite in self.collision_sprites:
             if sprite.rect.colliderect(self.hitbox_rect):
                 if direction == 'horizontal':
-                    if self.direction.x < 0: self.hitbox_rect.right = sprite.rect.left
-                    if self.direction.x > 0: self.hitbox_rect.left = sprite.rect.right
+                    if self.direction.x > 0: self.hitbox_rect.right = sprite.rect.left
+                    if self.direction.x < 0: self.hitbox_rect.left = sprite.rect.right
                 else:
-                    if self.direction.y < 0: self.hitbox_rect.bottom = sprite.rect.top
-                    if self.direction.y > 0: self.hitbox_rect.top = sprite.rect.bottom
-
-    def animate(self, dt):
-        # animate
-        self.frame_index = self.frame_index + 5 * dt
-        self.image = self.frames[int(self.frame_index) % len(self.frames)]
+                    if self.direction.y < 0: self.hitbox_rect.top = sprite.rect.bottom
+                    if self.direction.y > 0: self.hitbox_rect.bottom = sprite.rect.top
 
     def update(self, dt):
-        self.get_direction()
         self.move(dt)
         self.animate(dt)
