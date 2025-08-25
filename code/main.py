@@ -32,6 +32,7 @@ class Game:
         self.spawn_time = 0
         self.enemy_cooldown = 500
 
+        self.map = load_pygame(join('data', 'maps', 'world.tmx'))
         self.setup()
 
     def load_images(self):
@@ -54,36 +55,33 @@ class Game:
             if current_time - self.shoot_time >= self.gun_cooldown:
                 self.can_shoot = True
 
-    def enemy_timer(self, enemy_pos, player):
-        if not self.can_spawn:
-            current_time = pygame.time.get_ticks()
-            if current_time - self.spawn_time >= self.enemy_cooldown:
-                self.can_spawn = True
-        else:
-            Enemy(player, self.enemy_surf, enemy_pos, (self.all_sprites, self.enemy_sprites), self.collision_sprites)
-            self.can_spawn = False
-            self.spawn_time = pygame.time.get_ticks()
+    def enemy_timer(self):
+        for obj in self.map.get_layer_by_name('Entities'):
+            if obj.name == 'Enemy':
+
+                if not self.can_spawn:
+                    current_time = pygame.time.get_ticks()
+                    if current_time - self.spawn_time >= self.enemy_cooldown:
+                        self.can_spawn = True
+                else:
+                    Enemy(self.player, self.enemy_surf, (obj.x, obj.y), (self.all_sprites, self.enemy_sprites), self.collision_sprites)
+                    self.can_spawn = False
+                    self.spawn_time = pygame.time.get_ticks()
 
     def setup(self):
-        map = load_pygame(join('data', 'maps', 'world.tmx'))
-
-        for x, y, image in map.get_layer_by_name('Ground').tiles():
+        for x, y, image in self.map.get_layer_by_name('Ground').tiles():
             Sprite((x * TILE_SIZE,y * TILE_SIZE), image, self.all_sprites)
 
-        for obj in map.get_layer_by_name('Collisions'):
+        for obj in self.map.get_layer_by_name('Collisions'):
             CollisionSprite((obj.x, obj.y), pygame.Surface((obj.width, obj.height)), self.collision_sprites)
 
-        for obj in map.get_layer_by_name('Objects'):
+        for obj in self.map.get_layer_by_name('Objects'):
             CollisionSprite((obj.x, obj.y), obj.image, (self.all_sprites, self.collision_sprites))
 
-        for obj in map.get_layer_by_name('Entities'):
+        for obj in self.map.get_layer_by_name('Entities'):
             if obj.name == 'Player':
                 self.player = Player((obj.x, obj.y), self.all_sprites, self.collision_sprites)
                 self.gun = Gun(self.player, self.all_sprites, self.all_sprites)
-            if obj.name == 'Enemy':
-                self.enemy_timer((obj.x,obj.y), self.player)
-                # Enemy(self.enemy_surf, (obj.x, obj.y), (self.all_sprites, self.enemy_sprites))
-                
 
     def run(self):
         while self.running:
@@ -97,7 +95,7 @@ class Game:
 
             # update
             self.gun_timer()
-            
+            self.enemy_timer()
             self.input()
             self.all_sprites.update(dt)
 

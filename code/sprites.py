@@ -89,7 +89,6 @@ class Enemy(pygame.sprite.Sprite):
                 full_path = join(folder_path, file_name)
                 surf = pygame.image.load(full_path).convert_alpha()
                 self.frames.append(surf)
-        print(self.frames)
 
     def get_direction(self):
         enemy_pos = pygame.Vector2(self.rect.center)
@@ -116,7 +115,6 @@ class Enemy(pygame.sprite.Sprite):
     def animate(self, dt):
         # animate
         self.frame_index = self.frame_index + 5 * dt
-        # print(self.frame_index)
         self.image = self.frames[int(self.frame_index) % len(self.frames)]
 
     def update(self, dt):
